@@ -2,10 +2,6 @@ import bpy
 import json
 import math
 
-# Clear existing mesh objects
-bpy.ops.object.select_all(action="SELECT")
-bpy.ops.object.delete(use_global=False)
-
 # Load the activations data
 with open(
     "/home/bird/git/neural-network-visualisation/mnist_activations.json", "r"
