@@ -209,3 +209,4 @@ __marimo__/
 # NN
 *.pth
 data
+*activations.json

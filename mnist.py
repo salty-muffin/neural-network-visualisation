@@ -4,23 +4,7 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 
-
-# Define the neural network
-class SimpleNN(nn.Module):
-    def __init__(self):
-        super(SimpleNN, self).__init__()
-        self.fc1 = nn.Linear(64, 32)  # Input layer to first hidden layer
-        self.fc2 = nn.Linear(32, 16)  # First hidden layer to second hidden layer
-        self.fc3 = nn.Linear(16, 8)  # Second hidden layer to third hidden layer
-        self.fc4 = nn.Linear(8, 10)  # Third hidden layer to output layer
-
-    def forward(self, x):
-        x = x.view(-1, 64)  # Flatten the input
-        x = torch.relu(self.fc1(x))
-        x = torch.relu(self.fc2(x))
-        x = torch.relu(self.fc3(x))
-        x = self.fc4(x)  # No activation for the output layer (logits)
-        return x
+from net import MnistNN
 
 
 # Define a transform to downscale MNIST to 8x8
@@ -39,12 +23,20 @@ mnist_test = datasets.MNIST(
     root="./data", train=False, download=True, transform=transform
 )
 
-# Create DataLoaders
-train_loader = DataLoader(mnist_train, batch_size=64, shuffle=True)
-test_loader = DataLoader(mnist_test, batch_size=64, shuffle=False)
+# Create DataLoaders with larger batch size and pinned memory for faster GPU transfer
+train_loader = DataLoader(
+    mnist_train, batch_size=256, shuffle=True, pin_memory=True, num_workers=4
+)
+test_loader = DataLoader(
+    mnist_test, batch_size=256, shuffle=False, pin_memory=True, num_workers=4
+)
+
+# Set device to CUDA if available
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Using device: {device}")
 
 # Initialize the model, loss function, and optimizer
-model = SimpleNN()
+model = MnistNN().to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
@@ -54,6 +46,9 @@ for epoch in range(epochs):
     model.train()
     running_loss = 0.0
     for images, labels in train_loader:
+        images, labels = images.to(device, non_blocking=True), labels.to(
+            device, non_blocking=True
+        )
         optimizer.zero_grad()  # Zero the gradients
         outputs = model(images)  # Forward pass
         loss = criterion(outputs, labels)  # Compute loss
@@ -69,6 +64,9 @@ correct = 0
 total = 0
 with torch.no_grad():
     for images, labels in test_loader:
+        images, labels = images.to(device, non_blocking=True), labels.to(
+            device, non_blocking=True
+        )
         outputs = model(images)
         _, predicted = torch.max(outputs, 1)
         total += labels.size(0)
