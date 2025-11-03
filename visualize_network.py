@@ -40,9 +40,9 @@ input_whitepoint = 1.0  # Maximum activation value for input nodes
 
 # Other layers (hidden + output + connections)
 blackpoint = 0  # Minimum activation value mapped to 0 emission
-whitepoint = 8.7  # Maximum activation value mapped to max emission
+whitepoint = 8  # Maximum activation value mapped to max emission
 
-max_emission_strength = 30.0  # Maximum emission strength for white point
+max_emission_strength = 10.0  # Maximum emission strength for white point
 
 
 # Calculate grid dimensions for each layer
