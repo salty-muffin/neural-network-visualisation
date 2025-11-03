@@ -5,6 +5,8 @@ import json
 
 from net import MnistNN, transform, layers
 
+animation_length = 10
+
 
 # Load the saved model
 model = MnistNN()
@@ -24,7 +26,7 @@ all_results = []
 print("Processing 10 random images and capturing activations:\n")
 with torch.no_grad():
     for i, (image, label) in enumerate(test_loader):
-        if i >= 10:  # Stop after 10 images
+        if i >= animation_length:  # Stop after 10 images
             break
 
         # Get model prediction with activations
