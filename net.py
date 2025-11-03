@@ -6,10 +6,10 @@ import torch.nn as nn
 class MnistNN(nn.Module):
     def __init__(self):
         super().__init__()
-        self.fc1 = nn.Linear(64, 32)  # Input layer to first hidden layer
-        self.fc2 = nn.Linear(32, 16)  # First hidden layer to second hidden layer
-        self.fc3 = nn.Linear(16, 8)  # Second hidden layer to third hidden layer
-        self.fc4 = nn.Linear(8, 10)  # Third hidden layer to output layer
+        self.fc1 = nn.Linear(64, 64)  # Input layer to first hidden layer
+        self.fc2 = nn.Linear(64, 64)  # First hidden layer to second hidden layer
+        self.fc3 = nn.Linear(64, 64)  # Second hidden layer to third hidden layer
+        self.fc4 = nn.Linear(64, 10)  # Third hidden layer to output layer
 
     def forward(self, x):
         x = x.view(-1, 64)  # Flatten the input
