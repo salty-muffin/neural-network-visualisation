@@ -64,7 +64,7 @@ def normalize_activation(value, blackpoint, whitepoint):
     return normalized
 
 
-def create_emission_material(name, emission_strength, color=(1, 1, 1)):
+def create_emission_material(name, emission_strengths: list[float], color=(1, 1, 1)):
     """Create an emission material with given strength"""
     mat = bpy.data.materials.new(name=name)
     mat.use_nodes = True
@@ -77,7 +77,13 @@ def create_emission_material(name, emission_strength, color=(1, 1, 1)):
     # Create emission shader
     emission = nodes.new(type="ShaderNodeEmission")
     emission.inputs["Color"].default_value = (*color, 1.0)
-    emission.inputs["Strength"].default_value = emission_strength
+    emission.inputs["Strength"].default_value = emission_strengths[0]
+
+    for frame, strength in enumerate(emission_strengths, start=1):
+        emission.inputs["Strength"].default_value = strength
+        emission.inputs["Strength"].keyframe_insert(
+            data_path="default_value", frame=frame
+        )
 
     # Create output node
     output = nodes.new(type="ShaderNodeOutputMaterial")
@@ -88,7 +94,9 @@ def create_emission_material(name, emission_strength, color=(1, 1, 1)):
     return mat
 
 
-def create_sphere(location, radius, name, activation_value=0.0, use_input_range=False):
+def create_sphere(
+    location, radius, name, activation_values=[0.0], use_input_range=False
+):
     """Create a sphere at the given location"""
     bpy.ops.mesh.primitive_ico_sphere_add(
         radius=radius, location=location, subdivisions=2
@@ -100,15 +108,20 @@ def create_sphere(location, radius, name, activation_value=0.0, use_input_range=
     # Use input-specific range for input layer, standard range for others
     bp = input_blackpoint if use_input_range else blackpoint
     wp = input_whitepoint if use_input_range else whitepoint
-    normalized = normalize_activation(activation_value, bp, wp)
-    emission_strength = normalized * max_emission_strength
-    mat = create_emission_material(f"mat_{name}", emission_strength)
+    normalized = [
+        normalize_activation(activation_value, bp, wp)
+        for activation_value in activation_values
+    ]
+    emission_strengths = [
+        normalized_value * max_emission_strength for normalized_value in normalized
+    ]
+    mat = create_emission_material(f"mat_{name}", emission_strengths)
     sphere.data.materials.append(mat)
 
     return sphere
 
 
-def create_connection(start_pos, end_pos, radius, name, activation_value=0.0):
+def create_connection(start_pos, end_pos, radius, name, activation_values=[0.0]):
     """Create a cylinder connection between two points"""
     # Calculate the vector between points
     dx = end_pos[0] - start_pos[0]
@@ -148,9 +161,14 @@ def create_connection(start_pos, end_pos, radius, name, activation_value=0.0):
         cylinder.rotation_euler = rotation.to_euler()
 
     # Create and assign emission material
-    normalized = normalize_activation(activation_value, blackpoint, whitepoint)
-    emission_strength = normalized * max_emission_strength
-    mat = create_emission_material(f"mat_{name}", emission_strength)
+    normalized = [
+        normalize_activation(activation_value, blackpoint, whitepoint)
+        for activation_value in activation_values
+    ]
+    emission_strengths = [
+        normalized_value * max_emission_strength for normalized_value in normalized
+    ]
+    mat = create_emission_material(f"mat_{name}", emission_strengths)
     cylinder.data.materials.append(mat)
 
     return cylinder
@@ -160,8 +178,8 @@ def create_connection(start_pos, end_pos, radius, name, activation_value=0.0):
 node_positions = {}
 
 # Get activations data
-activations = first_image["activations"]
-weighted_values = first_image["weighted_values"]
+activations = [image["activations"] for image in data]
+weighted_values = [image["weighted_values"] for image in data]
 
 # Create nodes for each layer
 layers: dict = first_image["layers"]
@@ -173,7 +191,9 @@ for layer_idx, layer_name in enumerate(layer_names):
     node_positions[layer_name] = []
 
     # Get activation values for this layer
-    layer_activations = activations.get(layer_name, [0] * num_neurons)
+    layer_activations = [
+        activation.get(layer_name, [0] * num_neurons) for activation in activations
+    ]
 
     if layer_name == "input":
         # Input layer: 8x8 grid
@@ -186,16 +206,19 @@ for layer_idx, layer_name in enumerate(layer_names):
                     z = (i - grid_size / 2) * input_spacing
                     pos = (x_position, y, z)
                     node_positions[layer_name].append(pos)
-                    activation_val = (
-                        layer_activations[neuron_idx]
-                        if neuron_idx < len(layer_activations)
-                        else 0.0
-                    )
+                    activation_vals = [
+                        (
+                            layer_activation[neuron_idx]
+                            if neuron_idx < len(layer_activations)
+                            else 0.0
+                        )
+                        for layer_activation in layer_activations
+                    ]
                     create_sphere(
                         pos,
                         node_radius,
                         f"{layer_name}_neuron_{neuron_idx}",
-                        activation_val,
+                        activation_vals,
                         use_input_range=True,  # Use input-specific range
                     )
 
@@ -208,11 +231,12 @@ for layer_idx, layer_name in enumerate(layer_names):
                 z = 0
                 pos = (x_position, y, z)
                 node_positions[layer_name].append(pos)
-                activation_val = (
-                    layer_activations[i] if i < len(layer_activations) else 0.0
-                )
+                activation_vals = [
+                    (layer_activation[i] if i < len(layer_activation) else 0.0)
+                    for layer_activation in layer_activations
+                ]
                 create_sphere(
-                    pos, node_radius, f"{layer_name}_neuron_{i}", activation_val
+                    pos, node_radius, f"{layer_name}_neuron_{i}", activation_vals
                 )
         else:
             # Arrange in a grid
@@ -224,11 +248,12 @@ for layer_idx, layer_name in enumerate(layer_names):
                 z = (row - side_z / 2) * output_spacing
                 pos = (x_position, y, z)
                 node_positions[layer_name].append(pos)
-                activation_val = (
-                    layer_activations[i] if i < len(layer_activations) else 0.0
-                )
+                activation_vals = [
+                    (layer_activation[i] if i < len(layer_activation) else 0.0)
+                    for layer_activation in layer_activations
+                ]
                 create_sphere(
-                    pos, node_radius, f"{layer_name}_neuron_{i}", activation_val
+                    pos, node_radius, f"{layer_name}_neuron_{i}", activation_vals
                 )
 
     else:
@@ -242,8 +267,11 @@ for layer_idx, layer_name in enumerate(layer_names):
             z = (row - side / 2) * hidden_layer_spacing
             pos = (x_position, y, z)
             node_positions[layer_name].append(pos)
-            activation_val = layer_activations[i] if i < len(layer_activations) else 0.0
-            create_sphere(pos, node_radius, f"{layer_name}_neuron_{i}", activation_val)
+            activation_vals = [
+                (layer_activation[i] if i < len(layer_activation) else 0.0)
+                for layer_activation in layer_activations
+            ]
+            create_sphere(pos, node_radius, f"{layer_name}_neuron_{i}", activation_vals)
 
     x_position += layer_spacing
 
@@ -260,7 +288,10 @@ for start_layer, end_layer, weight_key in connection_pairs:
     end_positions = node_positions[end_layer]
 
     # Get weighted values for this layer connection
-    layer_weighted_values = weighted_values.get(weight_key, [0] * len(end_positions))
+    layer_weighted_values = [
+        weighted_value.get(weight_key, [0] * len(end_positions))
+        for weighted_value in weighted_values
+    ]
 
     for i, start_pos in enumerate(start_positions):
         for j, end_pos in enumerate(end_positions):
@@ -269,15 +300,16 @@ for start_layer, end_layer, weight_key in connection_pairs:
             )
             # Use the weighted value of the target neuron for this connection
             # This represents the contribution to that neuron
-            weight_val = (
-                layer_weighted_values[j] if j < len(layer_weighted_values) else 0.0
-            )
+            weight_vals = [
+                (layer_weighted_value[j] if j < len(layer_weighted_value) else 0.0)
+                for layer_weighted_value in layer_weighted_values
+            ]
             create_connection(
                 start_pos,
                 end_pos,
                 connection_radius,
                 f"connection_{start_layer}_{i}_to_{end_layer}_{j}",
-                weight_val,
+                weight_vals,
             )
 
 print(f"Created neural network visualization with {len(layer_names)} layers")

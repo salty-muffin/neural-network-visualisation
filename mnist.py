@@ -6,6 +6,8 @@ from torch.utils.data import DataLoader
 
 from net import MnistNN, transform
 
+epochs = 100
+
 # Load the MNIST dataset with the transform
 mnist_train = datasets.MNIST(
     root="./data", train=True, download=True, transform=transform
@@ -32,7 +34,6 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # Training loop
-epochs = 40
 for epoch in range(epochs):
     model.train()
     running_loss = 0.0
