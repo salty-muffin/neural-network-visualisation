@@ -9,15 +9,32 @@ transform = transforms.Compose(
     ]
 )
 
+# Network architecture
+layers = {
+    "input": 8 * 8,
+    "hidden1": 8 * 8,
+    "hidden2": 8 * 8,
+    "hidden3": 8 * 8,
+    "output": 10,
+}
+
 
 # Define the neural network
 class MnistNN(nn.Module):
     def __init__(self):
         super().__init__()
-        self.fc1 = nn.Linear(64, 64)  # Input layer to first hidden layer
-        self.fc2 = nn.Linear(64, 64)  # First hidden layer to second hidden layer
-        self.fc3 = nn.Linear(64, 64)  # Second hidden layer to third hidden layer
-        self.fc4 = nn.Linear(64, 10)  # Third hidden layer to output layer
+        self.fc1 = nn.Linear(
+            layers["input"], layers["hidden1"]
+        )  # Input layer to first hidden layer
+        self.fc2 = nn.Linear(
+            layers["hidden1"], layers["hidden2"]
+        )  # First hidden layer to second hidden layer
+        self.fc3 = nn.Linear(
+            layers["hidden2"], layers["hidden3"]
+        )  # Second hidden layer to third hidden layer
+        self.fc4 = nn.Linear(
+            layers["hidden3"], layers["output"]
+        )  # Third hidden layer to output layer
 
     def forward(self, x):
         x = x.view(-1, 64)  # Flatten the input

@@ -15,9 +15,6 @@ with open(
 # Use the first image's data for structure
 first_image = data[0]
 
-# Network architecture
-layers = {"input": 64, "hidden1": 64, "hidden2": 64, "hidden3": 64, "output": 10}
-
 # Layout parameters
 layer_spacing = 5.0  # Distance between layers along X axis
 node_radius = 0.05  # Radius of sphere nodes
@@ -87,7 +84,8 @@ def create_connection(start_pos, end_pos, radius, name):
 node_positions = {}
 
 # Create nodes for each layer
-layer_names = ["input", "hidden1", "hidden2", "hidden3", "output"]
+layers: dict = first_image["layers"]
+layer_names = layers.keys()
 x_position = 0
 
 for layer_idx, layer_name in enumerate(layer_names):
@@ -96,7 +94,7 @@ for layer_idx, layer_name in enumerate(layer_names):
 
     if layer_name == "input":
         # Input layer: 8x8 grid
-        grid_size = 8
+        grid_size = get_grid_dimensions(layers["input"])[0]
         spacing = 0.2
         for i in range(grid_size):
             for j in range(grid_size):
@@ -149,26 +147,26 @@ for layer_idx, layer_name in enumerate(layer_names):
     x_position += layer_spacing
 
 # Create connections between layers
-connection_pairs = [
-    ("input", "hidden1"),
-    ("hidden1", "hidden2"),
-    ("hidden2", "hidden3"),
-    ("hidden3", "output"),
-]
+# connection_pairs = [
+#     ("input", "hidden1"),
+#     ("hidden1", "hidden2"),
+#     ("hidden2", "hidden3"),
+#     ("hidden3", "output"),
+# ]
 
-for start_layer, end_layer in connection_pairs:
-    start_positions = node_positions[start_layer]
-    end_positions = node_positions[end_layer]
+# for start_layer, end_layer in connection_pairs:
+#     start_positions = node_positions[start_layer]
+#     end_positions = node_positions[end_layer]
 
-    for i, start_pos in enumerate(start_positions):
-        for j, end_pos in enumerate(end_positions):
-            print(f"{i}/{start_positions}, j/{end_positions} connections")
-            create_connection(
-                start_pos,
-                end_pos,
-                connection_radius,
-                f"connection_{start_layer}_{i}_to_{end_layer}_{j}",
-            )
+#     for i, start_pos in enumerate(start_positions):
+#         for j, end_pos in enumerate(end_positions):
+#             print(f"{i}/{start_positions}, j/{end_positions} connections")
+#             create_connection(
+#                 start_pos,
+#                 end_pos,
+#                 connection_radius,
+#                 f"connection_{start_layer}_{i}_to_{end_layer}_{j}",
+#             )
 
 print(f"Created neural network visualization with {len(layer_names)} layers")
 print(f"Total nodes: {sum(len(positions) for positions in node_positions.values())}")

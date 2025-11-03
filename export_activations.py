@@ -3,7 +3,7 @@ from torchvision import datasets
 from torch.utils.data import DataLoader
 import json
 
-from net import MnistNN, transform
+from net import MnistNN, transform, layers
 
 
 # Load the saved model
@@ -38,6 +38,7 @@ with torch.no_grad():
             "predicted_label": predicted.item(),
             "activations": activations,
             "weighted_values": weighted_values,
+            "layers": layers,
         }
         all_results.append(result)
 
