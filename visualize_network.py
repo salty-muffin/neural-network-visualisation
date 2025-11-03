@@ -17,7 +17,10 @@ first_image = data[0]
 
 # Layout parameters
 layer_spacing = 5.0  # Distance between layers along X axis
-node_radius = 0.05  # Radius of sphere nodes
+input_spacing = 1
+hidden_layer_spacing = 1
+output_spacing = 1
+node_radius = 0.1  # Radius of sphere nodes
 connection_radius = 0.01  # Radius of connection cylinders
 
 
@@ -95,13 +98,12 @@ for layer_idx, layer_name in enumerate(layer_names):
     if layer_name == "input":
         # Input layer: 8x8 grid
         grid_size = get_grid_dimensions(layers["input"])[0]
-        spacing = 0.2
         for i in range(grid_size):
             for j in range(grid_size):
                 neuron_idx = i * grid_size + j
                 if neuron_idx < num_neurons:
-                    y = (j - grid_size / 2) * spacing
-                    z = (i - grid_size / 2) * spacing
+                    y = (j - grid_size / 2) * input_spacing
+                    z = (i - grid_size / 2) * input_spacing
                     pos = (x_position, y, z)
                     node_positions[layer_name].append(pos)
                     create_sphere(pos, node_radius, f"{layer_name}_neuron_{neuron_idx}")
@@ -110,9 +112,8 @@ for layer_idx, layer_name in enumerate(layer_names):
         # Output layer: 1x10 or 2x5 grid
         if num_neurons <= 10:
             # Arrange in a single row
-            spacing = 0.3
             for i in range(num_neurons):
-                y = (i - num_neurons / 2) * spacing
+                y = (i - num_neurons / 2) * output_spacing
                 z = 0
                 pos = (x_position, y, z)
                 node_positions[layer_name].append(pos)
@@ -120,12 +121,11 @@ for layer_idx, layer_name in enumerate(layer_names):
         else:
             # Arrange in a grid
             side_y, side_z = get_grid_dimensions(num_neurons)
-            spacing = 0.3
             for i in range(num_neurons):
                 row = i // side_y
                 col = i % side_y
-                y = (col - side_y / 2) * spacing
-                z = (row - side_z / 2) * spacing
+                y = (col - side_y / 2) * output_spacing
+                z = (row - side_z / 2) * output_spacing
                 pos = (x_position, y, z)
                 node_positions[layer_name].append(pos)
                 create_sphere(pos, node_radius, f"{layer_name}_neuron_{i}")
@@ -137,36 +137,37 @@ for layer_idx, layer_name in enumerate(layer_names):
         for i in range(num_neurons):
             row = i // side
             col = i % side
-            y = (col - side / 2) * spacing
-            z = (row - side / 2) * spacing
+            y = (col - side / 2) * hidden_layer_spacing
+            z = (row - side / 2) * hidden_layer_spacing
             pos = (x_position, y, z)
             node_positions[layer_name].append(pos)
-            print(f"{i}/{num_neurons} neurons")
             create_sphere(pos, node_radius, f"{layer_name}_neuron_{i}")
 
     x_position += layer_spacing
 
 # Create connections between layers
-# connection_pairs = [
-#     ("input", "hidden1"),
-#     ("hidden1", "hidden2"),
-#     ("hidden2", "hidden3"),
-#     ("hidden3", "output"),
-# ]
+connection_pairs = [
+    ("input", "hidden1"),
+    ("hidden1", "hidden2"),
+    ("hidden2", "hidden3"),
+    ("hidden3", "output"),
+]
 
-# for start_layer, end_layer in connection_pairs:
-#     start_positions = node_positions[start_layer]
-#     end_positions = node_positions[end_layer]
+for start_layer, end_layer in connection_pairs:
+    start_positions = node_positions[start_layer]
+    end_positions = node_positions[end_layer]
 
-#     for i, start_pos in enumerate(start_positions):
-#         for j, end_pos in enumerate(end_positions):
-#             print(f"{i}/{start_positions}, j/{end_positions} connections")
-#             create_connection(
-#                 start_pos,
-#                 end_pos,
-#                 connection_radius,
-#                 f"connection_{start_layer}_{i}_to_{end_layer}_{j}",
-#             )
+    for i, start_pos in enumerate(start_positions):
+        for j, end_pos in enumerate(end_positions):
+            print(
+                f"{i}/{len(start_positions)}, {j}/{len(end_positions)}, {start_layer} connections"
+            )
+            create_connection(
+                start_pos,
+                end_pos,
+                connection_radius,
+                f"connection_{start_layer}_{i}_to_{end_layer}_{j}",
+            )
 
 print(f"Created neural network visualization with {len(layer_names)} layers")
 print(f"Total nodes: {sum(len(positions) for positions in node_positions.values())}")

@@ -4,17 +4,17 @@ from torchvision import transforms
 
 transform = transforms.Compose(
     [
-        transforms.Resize((8, 8)),  # Resize to 8x8
+        transforms.Resize((4, 4)),  # Resize to 8x8
         transforms.ToTensor(),  # Convert to tensor
     ]
 )
 
 # Network architecture
 layers = {
-    "input": 8 * 8,
+    "input": 4 * 4,
     "hidden1": 8 * 8,
-    "hidden2": 8 * 8,
-    "hidden3": 8 * 8,
+    "hidden2": 4 * 4,
+    "hidden3": 4 * 4,
     "output": 10,
 }
 
@@ -37,7 +37,7 @@ class MnistNN(nn.Module):
         )  # Third hidden layer to output layer
 
     def forward(self, x):
-        x = x.view(-1, 64)  # Flatten the input
+        x = x.view(-1, layers["input"])  # Flatten the input
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
         x = torch.relu(self.fc3(x))
@@ -50,7 +50,7 @@ class MnistNN(nn.Module):
         weighted_values = {}
 
         # Input layer
-        x = x.view(-1, 64)
+        x = x.view(-1, layers["input"])
         activations["input"] = x.squeeze().tolist()
 
         # First hidden layer
