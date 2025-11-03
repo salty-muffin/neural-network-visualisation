@@ -34,8 +34,14 @@ node_radius = 0.1  # Radius of sphere nodes
 connection_radius = 0.01  # Radius of connection cylinders
 
 # Shader parameters
-blackpoint = 0.0  # Minimum activation value mapped to 0 emission
-whitepoint = 1.0  # Maximum activation value mapped to max emission
+# Input layer (for image visibility)
+input_blackpoint = 0.0  # Minimum activation value for input nodes
+input_whitepoint = 1.0  # Maximum activation value for input nodes
+
+# Other layers (hidden + output + connections)
+blackpoint = 0  # Minimum activation value mapped to 0 emission
+whitepoint = 8.7  # Maximum activation value mapped to max emission
+
 max_emission_strength = 30.0  # Maximum emission strength for white point
 
 
@@ -82,7 +88,7 @@ def create_emission_material(name, emission_strength, color=(1, 1, 1)):
     return mat
 
 
-def create_sphere(location, radius, name, activation_value=0.0):
+def create_sphere(location, radius, name, activation_value=0.0, use_input_range=False):
     """Create a sphere at the given location"""
     bpy.ops.mesh.primitive_ico_sphere_add(
         radius=radius, location=location, subdivisions=2
@@ -91,7 +97,10 @@ def create_sphere(location, radius, name, activation_value=0.0):
     sphere.name = name
 
     # Create and assign emission material
-    normalized = normalize_activation(activation_value, blackpoint, whitepoint)
+    # Use input-specific range for input layer, standard range for others
+    bp = input_blackpoint if use_input_range else blackpoint
+    wp = input_whitepoint if use_input_range else whitepoint
+    normalized = normalize_activation(activation_value, bp, wp)
     emission_strength = normalized * max_emission_strength
     mat = create_emission_material(f"mat_{name}", emission_strength)
     sphere.data.materials.append(mat)
@@ -187,6 +196,7 @@ for layer_idx, layer_name in enumerate(layer_names):
                         node_radius,
                         f"{layer_name}_neuron_{neuron_idx}",
                         activation_val,
+                        use_input_range=True,  # Use input-specific range
                     )
 
     elif layer_name == "output":
