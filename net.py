@@ -1,5 +1,13 @@
 import torch
 import torch.nn as nn
+from torchvision import transforms
+
+transform = transforms.Compose(
+    [
+        transforms.Resize((8, 8)),  # Resize to 8x8
+        transforms.ToTensor(),  # Convert to tensor
+    ]
+)
 
 
 # Define the neural network

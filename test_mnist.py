@@ -1,22 +1,14 @@
 import torch
-from torchvision import datasets, transforms
+from torchvision import datasets
 from torch.utils.data import DataLoader
 
-from net import MnistNN
+from net import MnistNN, transform
 
 
 # Load the saved model
 model = MnistNN()
 model.load_state_dict(torch.load("mnist_nn.pth"))
 model.eval()  # Set the model to evaluation mode
-
-# Define a transform to downscale MNIST to 8x8
-transform = transforms.Compose(
-    [
-        transforms.Resize((8, 8)),  # Resize to 8x8
-        transforms.ToTensor(),  # Convert to tensor
-    ]
-)
 
 # Load the MNIST test dataset
 mnist_test = datasets.MNIST(

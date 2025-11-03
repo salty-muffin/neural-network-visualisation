@@ -1,19 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torchvision import datasets, transforms
+from torchvision import datasets
 from torch.utils.data import DataLoader
 
-from net import MnistNN
-
-
-# Define a transform to downscale MNIST to 8x8
-transform = transforms.Compose(
-    [
-        transforms.Resize((8, 8)),  # Resize to 8x8
-        transforms.ToTensor(),  # Convert to tensor
-    ]
-)
+from net import MnistNN, transform
 
 # Load the MNIST dataset with the transform
 mnist_train = datasets.MNIST(
