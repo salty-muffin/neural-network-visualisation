@@ -1,0 +1,11 @@
+name: nn-blender
+channels:
+  - defaults
+dependencies:
+  - python=3.12
+  - pip
+  - pip:
+      - torch==2.9.0
+      - torchvision==0.24.0
+      - nvidia-cuda-runtime-cu12==12.8.90
+      - fake-bpy-module-latest==20251003 # blender 4.5.3
