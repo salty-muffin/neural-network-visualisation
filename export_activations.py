@@ -5,7 +5,7 @@ import json
 
 from net import MnistNN, transform, layers
 
-animation_length = 10
+animation_length = 20
 
 
 # Load the saved model

@@ -29,6 +29,9 @@ class MnistNN(nn.Module):
         self.fc2 = nn.Linear(
             layers["hidden1"], layers["hidden2"]
         )  # First hidden layer to second hidden layer
+        # self.fc3 = nn.Linear(
+        #     layers["hidden2"], layers["output"]
+        # )  # Second hidden layer to output layer
         self.fc3 = nn.Linear(
             layers["hidden2"], layers["hidden3"]
         )  # Second hidden layer to third hidden layer
@@ -40,6 +43,7 @@ class MnistNN(nn.Module):
         x = x.view(-1, layers["input"])  # Flatten the input
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
+        x = self.fc3(x)  # No activation for the output layer (logits)
         x = torch.relu(self.fc3(x))
         x = self.fc4(x)  # No activation for the output layer (logits)
         return x
@@ -64,6 +68,13 @@ class MnistNN(nn.Module):
         weighted_values["fc2"] = z2.squeeze().tolist()
         a2 = torch.relu(z2)
         activations["hidden2"] = a2.squeeze().tolist()
+
+        # # Output layer
+        # z3 = self.fc3(a2)
+        # weighted_values["fc3"] = z3.squeeze().tolist()
+        # activations["output"] = z3.squeeze().tolist()
+
+        # return z3, activations, weighted_values
 
         # Third hidden layer
         z3 = self.fc3(a2)

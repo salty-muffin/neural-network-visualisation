@@ -18,7 +18,8 @@ Adjust these values to control the brightness mapping of the visualization.
 
 # Load the activations data
 with open(
-    "/home/bird/git/neural-network-visualisation/mnist_activations.json", "r"
+    "/home/bird/git/neural-network-visualisation/mnist_activations.json",
+    "r",
 ) as f:
     data = json.load(f)
 
@@ -27,11 +28,11 @@ first_image = data[0]
 
 # Layout parameters
 layer_spacing = 5.0  # Distance between layers along X axis
-input_spacing = 1
-hidden_layer_spacing = 1
-output_spacing = 1
-node_radius = 0.1  # Radius of sphere nodes
-connection_radius = 0.01  # Radius of connection cylinders
+input_spacing = 1.5
+hidden_layer_spacing = 1.5
+output_spacing = 0.9
+node_radius = 0.12  # Radius of sphere nodes
+connection_radius = 0.02  # Radius of connection cylinders
 
 # Shader parameters
 # Input layer (for image visibility)
@@ -40,7 +41,7 @@ input_whitepoint = 1.0  # Maximum activation value for input nodes
 
 # Other layers (hidden + output + connections)
 blackpoint = 0  # Minimum activation value mapped to 0 emission
-whitepoint = 8  # Maximum activation value mapped to max emission
+whitepoint = 5.0  # Maximum activation value mapped to max emission
 
 max_emission_strength = 10.0  # Maximum emission strength for white point
 
@@ -279,6 +280,7 @@ for layer_idx, layer_name in enumerate(layer_names):
 connection_pairs = [
     ("input", "hidden1", "fc1"),
     ("hidden1", "hidden2", "fc2"),
+    # ("hidden2", "output", "fc3"),
     ("hidden2", "hidden3", "fc3"),
     ("hidden3", "output", "fc4"),
 ]
